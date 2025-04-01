@@ -40,8 +40,8 @@ val networkModule = module {
 }
 
  val repoModule = module {
-    single <AuthRepository> { AuthRepositoryImpl(get(),get()) }
-    single <ProductRepository> { ProductRepositoryImpl(get(),get()) }
+    single <AuthRepository> { AuthRepositoryImpl(get(),get(),get()) }
+    single <ProductRepository> { ProductRepositoryImpl(get(),get(),get()) }
  }
 
 val viewModel = module {

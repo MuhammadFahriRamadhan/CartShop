@@ -329,7 +329,12 @@ fun CartCheckoutScreen(navController : NavController) {
         }
     )
     if (showSheet) {
-        ProfileBottomSheet(viewModel.getUserName().toString(),onDismiss = { showSheet = false })
+        ProfileBottomSheet(viewModel.getUserName().toString(),onDismiss = {
+            showSheet = false
+            navController.navigate("home") {
+                popUpTo("cart") { inclusive = true }
+            }
+        })
     }
 }
 

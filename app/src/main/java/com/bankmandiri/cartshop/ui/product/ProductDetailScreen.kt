@@ -300,6 +300,11 @@ fun ProductDetailScreen(product: Product,navController : NavController) {
     )
 
     if (showSheet) {
-        ProfileBottomSheet(viewModel.getUserName().toString(),onDismiss = { showSheet = false })
+        ProfileBottomSheet(viewModel.getUserName().toString(),onDismiss = {
+            showSheet = false
+            navController.navigate("home") {
+                popUpTo("productDetail") { inclusive = true }
+            }
+        })
     }
 }

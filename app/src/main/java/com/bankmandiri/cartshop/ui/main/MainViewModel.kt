@@ -29,6 +29,7 @@ class MainViewModel : BaseViewModel(), KoinComponent {
     val productCartLiveEvent : MutableSharedFlow<List<ProductCartEntity?>> = MutableSharedFlow(replay = 1)
     fun islogin() = spManager.getIsLogin()
     fun getUserName() = spManager.getUsername()
+    fun getUserId() = spManager.getUserId()
 
 
     fun getProducts() {
@@ -55,8 +56,9 @@ class MainViewModel : BaseViewModel(), KoinComponent {
         viewModelScope.launch {
             safeScopeFun {
                 handleFailure(it.getGeneralErrorServer())
+                productCartLiveEvent.tryEmit(emptyList())
             }.launch {
-                productRepository.getProductCarts().collect{
+                productRepository.getProductCarts(getUserId()).collect{
                     productCartLiveEvent.emit(it.map { it?.copy() }.toList())
                     it.map {
                         Log.i("TAGEDS", "updateProduct:getProductCarts "+it?.quantity)
@@ -75,13 +77,13 @@ class MainViewModel : BaseViewModel(), KoinComponent {
                 Log.i("TAGEDS", "updateProduct: ")
             }.launch {
                 val productEntity = ProductCartEntity(
-                    id = product.id ?: 0,
                     name = product.name.orEmpty(),
                     price = product.price ?: 0.0,
                     image =  product.image.orEmpty(),
                     description = product.description.orEmpty(),
                     category = product.category.orEmpty(),
                     quantity = quantity,
+                    userId = getUserId()
                 )
                 productRepository.addedProductCart(productEntity)
             }
@@ -106,6 +108,7 @@ class MainViewModel : BaseViewModel(), KoinComponent {
         viewModelScope.launch {
             safeScopeFun {
                 handleFailure(it.getGeneralErrorServer())
+                getProductCartList()
             }.launch {
                 productRepository.deleteTransaction(id).collect{
                     getProductCartList()

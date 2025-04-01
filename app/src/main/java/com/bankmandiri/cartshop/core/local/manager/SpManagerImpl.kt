@@ -11,6 +11,7 @@ class SpManagerImpl(private val sharedPreferences: SharedPreferences) : SpManage
         const val PREFS_NAME = "sp_cart_shop"
         const val LOGIN_STATUS = "login_status"
         const val SET_USER_NAME = "user_name"
+        const val SET_USER_ID = "user_id"
     }
     private val gson = Gson()
 
@@ -26,6 +27,14 @@ class SpManagerImpl(private val sharedPreferences: SharedPreferences) : SpManage
         sharedPreferences.update(name to SET_USER_NAME)
     }
 
+    override fun setUserId(userId: Int) {
+        sharedPreferences.update(userId to SET_USER_ID)
+    }
+
+    override fun getUserId(): Int {
+       return  sharedPreferences.getInt(SET_USER_ID,0)
+    }
+
     override fun getUsername(): String? {
         return sharedPreferences.getString(SET_USER_NAME,"")
     }
@@ -33,6 +42,7 @@ class SpManagerImpl(private val sharedPreferences: SharedPreferences) : SpManage
     override fun invalidate() {
         sharedPreferences.update( false to LOGIN_STATUS)
         sharedPreferences.update("" to SET_USER_NAME)
+        sharedPreferences.update(0 to SET_USER_ID)
     }
 
 

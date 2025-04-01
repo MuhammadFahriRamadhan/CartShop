@@ -9,7 +9,8 @@ import com.bankmandiri.cartshop.core.domain.model.Login
 @Dao
 interface UserDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertUser(user : UserEntity)
+    suspend fun insertUser(user : UserEntity) : Long?
+
 
     @Query("SELECT * FROM users WHERE name = :userName")
     suspend fun getUser(userName : String): UserEntity?

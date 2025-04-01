@@ -1,6 +1,8 @@
 package com.bankmandiri.cartshop.ui.main
 
+import android.os.Build
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -56,13 +58,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.asFlow
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -70,6 +75,7 @@ import androidx.navigation.compose.rememberNavController
 import coil.compose.rememberAsyncImagePainter
 import com.bankmandiri.cartshop.core.domain.model.Product
 import com.bankmandiri.cartshop.core.local.ProductCartEntity
+import com.bankmandiri.cartshop.core.util.NetworkConnectionManager
 import com.bankmandiri.cartshop.core.util.formatPrice
 import com.bankmandiri.cartshop.ui.common.ProfileBottomSheet
 import com.bankmandiri.cartshop.ui.product.ProductDetailScreen
@@ -79,6 +85,7 @@ import com.bankmandiri.cartshop.ui.theme.CartShopTheme
 import org.koin.androidx.compose.koinViewModel
 
 class MainActivity : ComponentActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
@@ -110,10 +117,22 @@ fun AppNavigation() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CartNinjaApp(navController: NavController) {
+    var networkConnectionManager: NetworkConnectionManager? = null
     val viewModel: MainViewModel = koinViewModel()
     var showSheet by remember { mutableStateOf(false) }
+    var context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
     LaunchedEffect(Unit) {
         viewModel.getProductCartList()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            networkConnectionManager = NetworkConnectionManager(context)
+            networkConnectionManager?.isConnected?.observe(lifecycleOwner) { isConnected ->
+                if (isConnected) {
+                    viewModel.getProducts()
+                } else {
+                }
+            }
+        }
     }
     var productCarts = viewModel.productCartLiveEvent.collectAsState(emptyList()).value
     Scaffold(
@@ -178,7 +197,12 @@ fun CartNinjaApp(navController: NavController) {
     )
 
     if (showSheet) {
-        ProfileBottomSheet(viewModel.getUserName().toString(),onDismiss = { showSheet = false })
+        ProfileBottomSheet(viewModel.getUserName().toString(),onDismiss = {
+            showSheet = false
+            navController.navigate("home") {
+                popUpTo("home") { inclusive = true }
+            }
+        })
     }
 }
 

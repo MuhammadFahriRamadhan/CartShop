@@ -13,7 +13,7 @@ interface ProductRepository {
     suspend fun insertProductCart(productCart : ProductCartEntity)
     suspend fun updateProductCart(productCart: ProductCartEntity) : Flow<Boolean>
     suspend fun addedProductCart(productCart: ProductCartEntity)
-    suspend fun getProductCarts(): Flow<List<ProductCartEntity?>>
+    suspend fun getProductCarts(id : Int): Flow<List<ProductCartEntity?>>
     suspend fun deleteTransaction(id: Int) : Flow<Boolean>
     suspend fun checkoutTransaction(paid: Boolean): Flow<Boolean>
 }

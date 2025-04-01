@@ -5,10 +5,11 @@ import com.bankmandiri.cartshop.core.domain.model.Product
 import com.bankmandiri.cartshop.core.domain.repository.ProductRepository
 import com.bankmandiri.cartshop.core.local.ProductCartDao
 import com.bankmandiri.cartshop.core.local.ProductCartEntity
+import com.bankmandiri.cartshop.core.local.manager.SpManager
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 
-class ProductRepositoryImpl(private val apiService: ApiService,private val productCartDao: ProductCartDao) : ProductRepository {
+class ProductRepositoryImpl(private val apiService: ApiService,private val productCartDao: ProductCartDao,val spManager: SpManager) : ProductRepository {
 
     override suspend fun getProducts(): Flow<List<Product>?> {
         return flow {
@@ -36,11 +37,11 @@ class ProductRepositoryImpl(private val apiService: ApiService,private val produ
     override suspend fun updateProductCart(productCart: ProductCartEntity) : Flow<Boolean>{
        return flow {
            try {
-               val productEntity = productCartDao.findProductCart(productCart.id)
+               val productEntity = productCartDao.findProductCart(productCart.id,spManager.getUserId())
                if (productEntity == null){
                    productCartDao.insertProductCart(productCart)
                }else {
-                   productCartDao.updateProductCart(productCart.id,productCart.quantity)
+                   productCartDao.updateProductCart(productCart.id,productCart.quantity,spManager.getUserId())
                }
                emit(true)
            }catch (e : Exception){
@@ -51,12 +52,12 @@ class ProductRepositoryImpl(private val apiService: ApiService,private val produ
 
     override suspend fun addedProductCart(productCart: ProductCartEntity) {
         try {
-            val productEntity = productCartDao.findProductCart(productCart.id)
+            val productEntity = productCartDao.findProductCart(productCart.id,spManager.getUserId())
             if (productEntity == null){
                 productCartDao.insertProductCart(productCart)
             }else {
                 val updateQuantity = productCart.quantity + productEntity.quantity
-                productCartDao.updateProductCart(productCart.id,updateQuantity)
+                productCartDao.updateProductCart(productCart.id,updateQuantity,spManager.getUserId())
             }
             throw  Throwable("update data added")
         }catch (e : Exception){
@@ -64,12 +65,14 @@ class ProductRepositoryImpl(private val apiService: ApiService,private val produ
         }
     }
 
-    override suspend fun getProductCarts(): Flow<List<ProductCartEntity?>> {
+    override suspend fun getProductCarts(id : Int): Flow<List<ProductCartEntity?>> {
        return flow {
            try {
-             val productsCart =  productCartDao.getProductCarts()
+             val productsCart =  productCartDao.getProductCarts(id)
              if (productsCart.isNotEmpty() ){
                 emit(productsCart)
+             }else{
+                 throw Throwable("refresh")
              }
            }catch (e : Exception){
                throw Throwable(e.message)
@@ -81,13 +84,7 @@ class ProductRepositoryImpl(private val apiService: ApiService,private val produ
         return flow {
             try {
                 val rowsUpdated = productCartDao.deleteTransaction(id)
-                if (rowsUpdated > 0) {
-                    // Success: Callback or further processing
-                    emit(true)
-                } else {
-                    // Failed: No rows were updated
-                    emit(false)
-                }
+                emit(true)
             }catch (e : Exception){
                 throw Throwable(e.message)
             }
